@@ -79,6 +79,15 @@ const experiences = [
 
 const projects = [
   {
+    title: "BakeAura",
+    featured: true,
+    description:
+      "Production-grade local home-bakery marketplace — 'Swiggy for home bakers' — with four roles (Customer, Seller, Influencer, Admin), a short-video Reels discovery feed with weighted ranking, and an influencer referral/commission wallet. Real-world engineering: geofenced orders via Haversine distance, optimistic locking against overselling, idempotent Razorpay payment webhooks, circuit breakers on third-party APIs, and live order tracking over WebSocket/STOMP.",
+    tech: ["Java 21", "Spring Boot 3.5", "Spring Security", "JWT", "PostgreSQL", "Redis", "Razorpay", "WebSocket/STOMP", "Resilience4j", "Bucket4j", "Docker", "React 18", "Zustand", "Cloudinary"],
+    github: "https://github.com/sneha-860/Bakeaura",
+    live: ""
+  },
+  {
     title: "AuditAI",
     description:
       "Production-ready AI spend audit tool for startup teams. Analyzes AI subscriptions, seats, and API costs to generate deterministic savings recommendations, a spend health score, and shareable audit reports via email.",
@@ -216,11 +225,49 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSkill, setActiveSkill] = useState(1);
   const [activeProject, setActiveProject] = useState(0);
+  const [activeOtherProject, setActiveOtherProject] = useState(0);
   const [activeExperience, setActiveExperience] = useState(0);
   const [activeAchievement, setActiveAchievement] = useState(0);
 
+  const flagship = projects[0];
+  const otherProjects = projects.slice(1);
+
   useEffect(() => {
-    document.documentElement.style.scrollBehavior = "smooth";
+    const NAV_HEIGHT = 80;
+    const DURATION = 900;
+
+    function easeOutExpo(t) {
+      return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    }
+
+    function smoothScroll(targetY) {
+      const startY = window.scrollY;
+      const diff = targetY - startY;
+      let startTime = null;
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / DURATION, 1);
+        window.scrollTo(0, startY + diff * easeOutExpo(progress));
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function handleAnchorClick(e) {
+      const anchor = e.target.closest('a[href^="#"]');
+      if (!anchor) return;
+      const id = anchor.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      const top = target.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT;
+      smoothScroll(top);
+    }
+
+    document.addEventListener('click', handleAnchorClick);
+    return () => document.removeEventListener('click', handleAnchorClick);
   }, []);
 
   return (
@@ -404,26 +451,86 @@ export default function Home() {
             </Reveal>
 
           </div>
-        </section>
-
-        <section id="projects" className="section section-muted">
+         </section>
+          <section id="projects" className="section section-muted">
           <div className="container">
             <Reveal className="section-heading">
               <p className="eyebrow">Projects</p>
               <h2>Selected builds across backend systems, AI workflows, and product engineering.</h2>
             </Reveal>
+
+            {/* ── FLAGSHIP: BakeAura ── */}
+            <Reveal className="flagship-wrap">
+              <motion.article
+                className="flagship-card"
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="flagship-glow" aria-hidden="true" />
+                <div className="flagship-top">
+                  <div className="flagship-labels">
+                    <span className="flagship-pill">★ Flagship Project</span>
+                  </div>
+                  <span className="flagship-index">01</span>
+                </div>
+                <div className="flagship-body">
+                  <div className="flagship-copy">
+                    <h3 className="flagship-title">{flagship.title}</h3>
+                    <p className="flagship-desc">{flagship.description}</p>
+                    <div className="flagship-highlights">
+                      {["Geofenced orders (Haversine)","Optimistic locking","Idempotent Razorpay webhooks","Circuit breakers (Resilience4j)","WebSocket/STOMP live tracking","Redis cache + cart + tokens","Short-video Reels feed","4-role approval system"].map(h => (
+                        <span key={h}>{h}</span>
+                      ))}
+                    </div>
+                    <div className="flagship-tech">
+                      {flagship.tech.map(tag => <span key={tag}>{tag}</span>)}
+                    </div>
+                    <div className="flagship-actions">
+                      <a className="button button-primary" href={flagship.github} target="_blank" rel="noopener noreferrer">View on GitHub →</a>
+                      {flagship.live && <a className="button button-secondary" href={flagship.live} target="_blank" rel="noopener noreferrer">Live Demo</a>}
+                    </div>
+                  </div>
+                  <div className="flagship-visual" aria-hidden="true">
+                    <div className="fv-header"><span /><span /><span /><p>BakeAura Architecture</p></div>
+                    <div className="fv-nodes">
+                      {[["React 18","Zustand"],["Spring Boot 3.5","Spring Security"],["PostgreSQL","Redis"],["Razorpay","Cloudinary"],["WebSocket","Resilience4j"]].map(([a,b],i) => (
+                        <motion.div key={i} className="fv-row"
+                          initial={{ opacity: 0, x: 18 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: i * 0.08, duration: 0.42, ease: [0.22,1,0.36,1] }}
+                        >
+                          <span className="fv-node">{a}</span>
+                          <span className="fv-arrow">→</span>
+                          <span className="fv-node">{b}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                    <div className="fv-status">
+                      <span className="fv-dot" />
+                      <p>Modular monolith · Docker Compose · JWT + Redis auth</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.article>
+            </Reveal>
+
+            {/* ── OTHER PROJECTS ── */}
+            <Reveal className="other-projects-heading">
+              <p className="eyebrow" style={{ marginTop: "60px" }}>More Projects</p>
+            </Reveal>
             <Reveal className="projects-showcase">
               <div className="project-rail" aria-label="Project list">
-                {projects.map((project, index) => (
+                {otherProjects.map((project, index) => (
                   <button
-                    className={activeProject === index ? "is-active" : ""}
+                    className={activeOtherProject === index ? "is-active" : ""}
                     key={project.title}
                     type="button"
-                    onClick={() => setActiveProject(index)}
-                    onFocus={() => setActiveProject(index)}
-                    onMouseEnter={() => setActiveProject(index)}
+                    onClick={() => setActiveOtherProject(index)}
+                    onFocus={() => setActiveOtherProject(index)}
+                    onMouseEnter={() => setActiveOtherProject(index)}
                   >
-                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <span>{String(index + 2).padStart(2, "0")}</span>
                     <strong>{project.title}</strong>
                     <small>{project.tech.length} tools</small>
                   </button>
@@ -437,14 +544,14 @@ export default function Home() {
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="project-preview">
-                  <span>{String(activeProject + 1).padStart(2, "0")}</span>
-                  <p>{projects[activeProject].live ? "Live build" : "Repository build"}</p>
+                  <span>{String(activeOtherProject + 2).padStart(2, "0")}</span>
+                  <p>{otherProjects[activeOtherProject].live ? "Live build" : "Repository build"}</p>
                   <i aria-hidden="true" />
                   <i aria-hidden="true" />
                   <i aria-hidden="true" />
                 </div>
                 <motion.div
-                  key={projects[activeProject].title}
+                  key={otherProjects[activeOtherProject].title}
                   className="project-detail-inner"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -453,24 +560,24 @@ export default function Home() {
                   <div className="project-detail-header">
                     <div>
                       <p className="panel-label">Selected project</p>
-                      <h3>{projects[activeProject].title}</h3>
+                      <h3>{otherProjects[activeOtherProject].title}</h3>
                     </div>
-                    <span>{projects[activeProject].tech.length} tools</span>
+                    <span>{otherProjects[activeOtherProject].tech.length} tools</span>
                   </div>
-                  <p className="project-detail-copy">{projects[activeProject].description}</p>
+                  <p className="project-detail-copy">{otherProjects[activeOtherProject].description}</p>
                   <div className="skill-tags project-tags">
-                    {projects[activeProject].tech.map((tag) => (
+                    {otherProjects[activeOtherProject].tech.map((tag) => (
                       <span key={tag}>{tag}</span>
                     ))}
                   </div>
                   <div className="project-actions">
-                    <a className="button button-primary" href={projects[activeProject].github} target="_blank" rel="noopener noreferrer">
+                    <a className="button button-primary" href={otherProjects[activeOtherProject].github} target="_blank" rel="noopener noreferrer">
                       GitHub
                     </a>
-                    {projects[activeProject].live ? (
-                    <a className="button button-secondary" href={projects[activeProject].live} target="_blank" rel="noopener noreferrer">
-                      Live Demo
-                    </a>
+                    {otherProjects[activeOtherProject].live ? (
+                      <a className="button button-secondary" href={otherProjects[activeOtherProject].live} target="_blank" rel="noopener noreferrer">
+                        Live Demo
+                      </a>
                     ) : (
                       <span className="button button-disabled">Repository Only</span>
                     )}
